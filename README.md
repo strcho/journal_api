@@ -16,6 +16,14 @@ pipenv install
 pipenv run uvicorn main:app --reload --port 8000
 ```
 
+## Project Structure
+- `main.py` – uvicorn entry that exposes the FastAPI app.
+- `app/main.py` – app factory that wires routers and shared state.
+- `app/api/routes/` – modular routers for auth, sync, attachments, and health checks.
+- `app/services/` – request-agnostic business logic for auth, sync, and attachments.
+- `app/schemas/` – Pydantic request/response models and shared error envelopes.
+- `app/state.py` – in-memory store backing the demo implementation.
+
 ## API Overview
 - `POST /auth/login` – returns `accessToken`, `refreshToken`, and `deviceId` (accepts any credentials for now).
 - `POST /auth/refresh` – exchanges a refresh token + deviceId for new tokens.
