@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "0.128.0"
+uvicorn = {version = "*", index = "https://mirrors.aliyun.com/pypi/simple/"}
+
+[dev-packages]
+pytest = "*"
+
+[requires]
+python_version = "3.10"
