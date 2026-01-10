@@ -1,7 +1,12 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `main.py` hosts the FastAPI application with the root (`/`) and `/hello/{name}` routes; keep new routes and dependencies co-located here until the app grows, then extract modules under a `app/` package.
+- `main.py` is the uvicorn entrypoint that re-exports the FastAPI app.
+- `app/main.py` builds the FastAPI app, wiring routers and shared state.
+- `app/api/routes/` holds modular routers (auth, sync, attachments, health); add new endpoints here.
+- `app/services/` contains request-agnostic business logic; prefer adding logic here instead of in routers.
+- `app/schemas/` defines Pydantic request/response models and shared error envelopes.
+- `app/state.py` currently provides an in-memory store; swap this for a real data layer when needed.
 - `Pipfile` pins Python 3.10; add runtime and dev dependencies here so `pipenv` produces a reproducible environment.
 - `test_main.http` contains example requests for manual checks via an HTTP client (e.g., VS Code REST Client); update it when adding endpoints.
 - `.idea/` holds editor settings; avoid committing user-specific changes unless they benefit the team.
@@ -27,3 +32,4 @@
 - Commits: use short, imperative subjects (e.g., `Add hello route`, `Document local run steps`); group related changes logically.
 - PRs: describe intent, key changes, and verification steps (commands run, screenshots of responses if UI/API behavior changes).
 - Link related issues or tasks; call out breaking changes or new environment variables in the description.
+- When staging for a commit, prefer `git add .` to include relevant changes instead of listing files individually.
