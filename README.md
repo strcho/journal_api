@@ -24,6 +24,11 @@ pipenv run uvicorn main:app --reload --port 8000
 - `app/schemas/` – Pydantic request/response models and shared error envelopes.
 - `app/state.py` – in-memory store backing the demo implementation.
 
+## Development
+- Start the server: `pipenv run uvicorn main:app --reload --port 8000`
+- Hot reload is enabled; edit code under `app/` and refresh requests.
+- The app uses an in-memory store; data resets on restart. Swap `InMemoryStore` for a real data layer when ready.
+
 ## API Overview
 - `POST /auth/login` – returns `accessToken`, `refreshToken`, and `deviceId` (accepts any credentials for now).
 - `POST /auth/refresh` – exchanges a refresh token + deviceId for new tokens.
