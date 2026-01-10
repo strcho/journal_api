@@ -1,0 +1,74 @@
+# Login
+POST http://127.0.0.1:8000/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "secret"
+}
+
+###
+
+# Refresh
+POST http://127.0.0.1:8000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "<refreshToken>",
+  "deviceId": "<deviceId>"
+}
+
+###
+
+# Push changes (entries + attachment metadata)
+POST http://127.0.0.1:8000/sync/push
+Content-Type: application/json
+Authorization: Bearer <accessToken>
+
+{
+  "entries": [
+    {
+      "id": "entry-1",
+      "payloadEncrypted": "ciphertext",
+      "payloadVersion": 1,
+      "attachmentIds": ["att-1"],
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-02T00:00:00Z",
+      "deletedAt": null,
+      "revision": 0
+    }
+  ],
+  "attachmentsMeta": [
+    {
+      "id": "att-1",
+      "sha256": "abc123",
+      "sizeBytes": 42,
+      "mimeType": "image/jpeg",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-02T00:00:00Z",
+      "deletedAt": null,
+      "revision": 0
+    }
+  ]
+}
+
+###
+
+# Pull changes since revision 0
+GET http://127.0.0.1:8000/sync/changes?since=0
+Authorization: Bearer <accessToken>
+
+###
+
+# Upload attachment content
+PUT http://127.0.0.1:8000/attachments/att-1
+Authorization: Bearer <accessToken>
+Content-Type: application/octet-stream
+
+< binary ciphertext here >
+
+###
+
+# Download attachment
+GET http://127.0.0.1:8000/attachments/att-1
+Authorization: Bearer <accessToken>
