@@ -33,3 +33,7 @@
 - PRs: describe intent, key changes, and verification steps (commands run, screenshots of responses if UI/API behavior changes).
 - Link related issues or tasks; call out breaking changes or new environment variables in the description.
 - When staging for a commit, prefer `git add .` to include relevant changes instead of listing files individually.
+
+## 沟通与输出
+- 与开发者交流时使用中文。
+- 回复时给出简洁的小结，便于快速了解修改内容。
