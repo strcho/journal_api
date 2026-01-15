@@ -1,10 +1,11 @@
 from app.main import app, create_app
 
-# Re-export the FastAPI app for `uvicorn main:app`.
+# Re-export FastAPI app for `uvicorn main:app`.
 __all__ = ["app", "create_app"]
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    # Use main_v2 for production with MongoDB/Redis support
+    uvicorn.run("app.main_v2:app", host="0.0.0.0", port=8000, reload=True)
