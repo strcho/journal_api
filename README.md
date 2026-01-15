@@ -1,53 +1,106 @@
 # Journal API
 
-FastAPI demo backend matching the draft sync API from the Flutter journal app. Implements auth, sync push/pull, and attachment upload/download with in-memory stores for quick prototyping.
+基于 FastAPI 的日记同步后端服务，支持 MongoDB 和 Redis 持久化存储。
 
-## Prerequisites
-- Python 3.10
-- pipenv
+## 功能特性
 
-## Setup
-```sh
-pipenv install
+- 用户认证（登录/刷新 token）
+- 日记条目同步（拉取/推送）
+- 附件管理
+- 七牛云存储集成
+- MongoDB 数据持久化
+- Redis 缓存支持
+
+## 环境变量
+
+```bash
+# MongoDB 配置
+MONGODB_URL=mongodb://localhost:27017
+MONGODB_DB_NAME=journal_db
+
+# Redis 配置
+REDIS_URL=redis://localhost:6379
+
+# 七牛云存储配置
+QINIU_ACCESS_KEY=your_access_key
+QINIU_SECRET_KEY=your_secret_key
+QINIU_BUCKET_NAME=your_bucket_name
+QINIU_UPLOAD_DOMAIN=https://upload.qiniup.com
+QINIU_DOWNLOAD_BASE_URL=https://your-cdn-domain.com
 ```
 
-## Run
-```sh
-pipenv run uvicorn main:app --reload --port 8000
+## 使用 Docker Compose 部署
+
+1. 复制环境变量示例：
+```bash
+cp .env.example .env
 ```
 
-## Project Structure
-- `main.py` – uvicorn entry that exposes the FastAPI app.
-- `app/main.py` – app factory that wires routers and shared state.
-- `app/api/routes/` – modular routers for auth, sync, attachments, and health checks.
-- `app/services/` – request-agnostic business logic for auth, sync, and attachments.
-- `app/schemas/` – Pydantic request/response models and shared error envelopes.
-- `app/state.py` – in-memory store backing the demo implementation.
+2. 配置环境变量（编辑 `.env` 文件）
 
-## Development
-- Start the server: `pipenv run uvicorn main:app --reload --port 8000`
-- Hot reload is enabled; edit code under `app/` and refresh requests.
-- The app uses an in-memory store; data resets on restart. Swap `InMemoryStore` for a real data layer when ready.
+3. 启动服务：
+```bash
+docker-compose up -d
+```
 
-## API Overview
-- `POST /auth/login` – returns `accessToken`, `refreshToken`, and `deviceId` (accepts any credentials for now).
-- `POST /auth/refresh` – exchanges a refresh token + deviceId for new tokens.
-- `POST /sync/push` – push entries and attachment metadata; tracks revisions, reports conflicts/missingAttachments.
-- `GET /sync/changes?since=<rev>` – pull changes newer than a revision.
-- `PUT /attachments/{id}` – upload encrypted attachment content (octet-stream).
-- `GET /attachments/{id}` – download attachment content.
+4. 查看日志：
+```bash
+docker-compose logs -f api
+```
 
-All sync and attachment routes require `Authorization: Bearer <accessToken>`.
+5. 停止服务：
+```bash
+docker-compose down
+```
 
-## Quickstart (manual)
-Sample requests are in `test_main.http`. With the server running:
-1. Login to get tokens.
-2. Push entries + attachment metadata.
-3. Upload attachment content.
-4. Pull changes to verify revisions.
-5. Download attachment.
+## 本地开发
 
-## Notes
-- Storage is in-memory only; data resets on restart.
-- Conflict handling is last-write-wins based on server revision.
-- Update `test_main.http` alongside new endpoints for easy manual checks.
+### 安装依赖
+```bash
+pipenv install --dev
+```
+
+### 启动开发服务器
+```bash
+pipenv run uvicorn app.main_v2:app --reload --port 8000
+```
+
+### 运行测试
+```bash
+pipenv run pytest
+```
+
+## API 端点
+
+### 认证
+- `POST /auth/login` - 用户登录
+- `POST /auth/refresh` - 刷新访问令牌
+
+### 同步
+- `GET /sync/changes?since={revision}` - 拉取变更
+- `POST /sync/push` - 推送变更
+
+### 附件
+- `PUT /attachments/{id}` - 上传附件
+- `GET /attachments/{id}` - 下载附件
+
+### 存储
+- `GET /storage/qiniu/token?key={key}` - 获取七牛上传令牌
+
+### 健康检查
+- `GET /health` - 服务健康状态
+
+## 数据持久化
+
+- MongoDB 数据存储在 `mongodb_data` 卷
+- Redis 数据存储在 `redis_data` 卷
+
+## 生产环境建议
+
+1. 使用 HTTPS（通过反向代理）
+2. 配置 MongoDB 认证
+3. 配置 Redis 密码
+4. 使用环境变量管理敏感信息
+5. 设置合理的七牛令牌过期时间
+6. 配置日志收集和监控
+7. 设置资源限制（CPU/内存）
