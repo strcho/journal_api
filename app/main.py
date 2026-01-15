@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.routes import attachments, auth, health, sync
+from app.api.routes import attachments, auth, health, storage, sync
 from app.state import InMemoryStore
 
 
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(sync.router)
     app.include_router(attachments.router)
+    app.include_router(storage.router)
 
     return app
 
