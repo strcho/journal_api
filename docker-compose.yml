@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: journal_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: journal_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - journal_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: journal_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - journal_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: journal_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      MONGODB_DB_NAME: journal_db
+      REDIS_URL: redis://redis:6379
+      QINIU_ACCESS_KEY: ${QINIU_ACCESS_KEY}
+      QINIU_SECRET_KEY: ${QINIU_SECRET_KEY}
+      QINIU_BUCKET_NAME: ${QINIU_BUCKET_NAME}
+      QINIU_UPLOAD_DOMAIN: ${QINIU_UPLOAD_DOMAIN}
+      QINIU_DOWNLOAD_BASE_URL: ${QINIU_DOWNLOAD_BASE_URL}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - journal_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  journal_network:
+    driver: bridge
