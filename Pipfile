@@ -18,6 +18,15 @@ redis = {extras = ["hiredis"], version = "*"}
 
 [dev-packages]
 pytest = "*"
+black = "*"
+flake8 = "*"
+
+[scripts]
+dev = "uvicorn app.main_v2:app --reload --port 8000"
+test = "pytest"
+format = "black ."
+lint = "flake8"
+check = "pipenv check"
 
 [requires]
 python_version = "3.11"

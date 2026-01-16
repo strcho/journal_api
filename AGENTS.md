@@ -12,10 +12,39 @@
 - `.idea/` holds editor settings; avoid committing user-specific changes unless they benefit the team.
 
 ## Build, Test, and Development Commands
-- Install tooling: `pipenv install fastapi uvicorn` (add `pytest` when introducing automated tests). `pipenv shell` enters the virtualenv.
-- Run the app locally: `pipenv run uvicorn main:app --reload --port 8000` (hot reload for development).
-- Quick endpoint check: `pipenv run curl http://127.0.0.1:8000/hello/YourName` or use requests in `test_main.http`.
-- Once tests exist: `pipenv run pytest` for the suite; add `--maxfail=1 -q` for faster feedback.
+- **Environment Setup**: 
+  - `pipenv install --dev` installs all dependencies including dev tools
+  - `pipenv shell` activates the virtual environment (preferred over `pipenv run`)
+  - `pipenv --venv` shows virtual environment path
+  - `pipenv --rm` removes and recreates the virtual environment
+
+- **Dependency Management**:
+  - Add production dependencies: `pipenv install package_name`
+  - Add dev dependencies: `pipenv install --dev package_name`
+  - Remove dependencies: `pipenv uninstall package_name`
+  - Update lock file: `pipenv lock` (run after dependency changes)
+  - Sync environment: `pipenv sync` (installs exact versions from Pipfile.lock)
+  - Check security: `pipenv check`
+  - View dependency tree: `pipenv graph`
+
+- **Development Workflow**:
+  - Run the app locally: `pipenv run dev` (uses predefined script)
+  - Quick endpoint check: `pipenv run curl http://127.0.0.1:8000/hello/YourName` or use requests in `test_main.http`
+  - Run tests: `pipenv run test --maxfail=1 -q` for faster feedback
+  - Code formatting: `pipenv run format` (runs black on all files)
+  - Linting: `pipenv run lint` (runs flake8 for code quality)
+  - Security check: `pipenv run check` (scans for known vulnerabilities)
+
+- **Pipenv Best Practices**:
+  - Always commit `Pipfile.lock` to ensure reproducible environments
+  - Use `--dev` flag for development-only dependencies (pytest, black, flake8, etc.)
+  - Run `pipenv lock` after modifying Pipfile to update lock file
+  - Use `pipenv install --deploy` in CI/CD to ensure exact versions
+  - Avoid editing Pipfile.lock manually; let pipenv manage it
+  - Use specific versions for critical dependencies (`package = "1.2.3"`)
+  - Use flexible versions for less critical dependencies (`package = "*"`)
+  - Configure custom sources (like aliyun mirror) for faster installations
+  - Run `pipenv check` regularly to identify security vulnerabilities
 
 ## Coding Style & Naming Conventions
 - Target Python 3.10 with PEP 8 formatting (4-space indents, snake_case functions/variables, CapWords classes).
