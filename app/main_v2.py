@@ -7,6 +7,7 @@ from app.api.routes.auth_v2 import router as auth_router
 from app.api.routes.sync_v2 import router as sync_router
 from app.api.routes.attachments_v2 import router as attachments_router
 from app.api.routes.storage_v2 import router as storage_router
+from app.api.routes.journals_v2 import router as journals_router
 from app.state_v2 import init_databases, close_databases
 
 
@@ -28,6 +29,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(auth_router)
+    app.include_router(journals_router)
     app.include_router(sync_router)
     app.include_router(attachments_router)
     app.include_router(storage_router)

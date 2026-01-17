@@ -21,22 +21,22 @@ test:
 	pipenv run pytest -v
 
 docker-up:
-	docker-compose up -d
+	docker compose up -d
 
 docker-down:
-	docker-compose down
+	docker compose down
 
 docker-logs:
-	docker-compose logs -f api
+	docker compose logs -f api
 
 docker-build:
 	docker build -t journal-api .
 
 docker-prod-up:
-	docker-compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml up -d
 
 docker-prod-down:
-	docker-compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml down
 
 clean:
 	find . -type f -name '*.pyc' -delete

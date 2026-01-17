@@ -6,6 +6,7 @@ from app.models.mongo import (
     MongoAttachmentMeta,
     MongoAttachmentContent,
     MongoRefreshToken,
+    MongoJournal,
     MongoSequence,
 )
 
@@ -16,7 +17,10 @@ class MongoStore:
         self.db = self.client[db_name]
 
     async def init_indexes(self):
+        await self.db.journals.create_index("id", unique=True)
+        await self.db.journals.create_index("revision")
         await self.db.entries.create_index("id", unique=True)
+        await self.db.entries.create_index("journal_id")
         await self.db.entries.create_index("revision")
         await self.db.attachments_meta.create_index("id", unique=True)
         await self.db.attachments_meta.create_index("revision")
@@ -90,3 +94,21 @@ class MongoStore:
     async def get_latest_revision(self) -> int:
         sequence = await self.db.sequences.find_one({"name": "_id"})
         return sequence["value"] if sequence else 0
+
+    async def get_journal(self, journal_id: str) -> Optional[dict]:
+        return await self.db.journals.find_one({"id": journal_id})
+
+    async def upsert_journal(self, journal: MongoJournal) -> None:
+        await self.db.journals.replace_one(
+            {"id": journal.id},
+            journal.dict(),
+            upsert=True,
+        )
+
+    async def get_journals_since(self, since: int) -> list[dict]:
+        cursor = self.db.journals.find({"revision": {"$gt": since}})
+        return await cursor.to_list(length=None)
+
+    async def get_all_journals(self) -> list[dict]:
+        cursor = self.db.journals.find({"deleted_at": None})
+        return await cursor.to_list(length=None)

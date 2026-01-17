@@ -5,6 +5,7 @@ from typing import Optional
 
 class MongoEntry(BaseModel):
     id: str
+    journal_id: str
     payload_encrypted: str
     payload_version: int
     attachment_ids: list[str]
@@ -35,6 +36,16 @@ class MongoRefreshToken(BaseModel):
     device_id: str
     user_email: str
     created_at: datetime
+
+
+class MongoJournal(BaseModel):
+    id: str
+    name: str
+    color: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
+    revision: Optional[int] = None
 
 
 class MongoSequence(BaseModel):

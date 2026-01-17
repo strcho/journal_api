@@ -5,8 +5,9 @@ from app.schemas.sync import (
     PushResponse,
     SyncChangesResponse,
 )
+from app.schemas.journal import JournalChange
 from app.database.mongo import MongoStore
-from app.models.mongo import MongoEntry, MongoAttachmentMeta
+from app.models.mongo import MongoEntry, MongoAttachmentMeta, MongoJournal
 
 
 class SyncService:
@@ -16,10 +17,12 @@ class SyncService:
     async def get_changes(self, since: int = 0) -> SyncChangesResponse:
         entry_docs = await self.store.get_entries_since(since)
         attachment_docs = await self.store.get_attachments_meta_since(since)
+        journal_docs = await self.store.get_journals_since(since)
 
         entry_changes = [
             EntryChange(
                 id=doc["id"],
+                journalId=doc["journal_id"],
                 payloadEncrypted=doc["payload_encrypted"],
                 payloadVersion=doc["payload_version"],
                 attachmentIds=doc["attachment_ids"],
@@ -43,9 +46,22 @@ class SyncService:
             )
             for doc in attachment_docs
         ]
+        journal_changes = [
+            JournalChange(
+                id=doc["id"],
+                name=doc["name"],
+                color=doc.get("color"),
+                createdAt=doc["created_at"],
+                updatedAt=doc["updated_at"],
+                deletedAt=doc.get("deleted_at"),
+                revision=doc.get("revision"),
+            )
+            for doc in journal_docs
+        ]
 
         entry_changes.sort(key=lambda e: e.revision or 0)
         attachment_changes.sort(key=lambda a: a.revision or 0)
+        journal_changes.sort(key=lambda j: j.revision or 0)
 
         latest_revision = await self.store.get_latest_revision()
 
@@ -53,6 +69,7 @@ class SyncService:
             latestRevision=latest_revision,
             entries=entry_changes,
             attachments=attachment_changes,
+            journals=journal_changes,
         )
 
     async def push_changes(self, payload: PushRequest) -> PushResponse:
@@ -71,12 +88,13 @@ class SyncService:
             current_revision = await self.store.get_next_revision()
             mongo_entry = MongoEntry(
                 id=entry.id,
-                payloadEncrypted=entry.payloadEncrypted,
-                payloadVersion=entry.payloadVersion,
-                attachmentIds=entry.attachmentIds,
-                createdAt=entry.createdAt,
-                updatedAt=entry.updatedAt,
-                deletedAt=entry.deletedAt,
+                journal_id=entry.journalId,
+                payload_encrypted=entry.payloadEncrypted,
+                payload_version=entry.payloadVersion,
+                attachment_ids=entry.attachmentIds,
+                created_at=entry.createdAt,
+                updated_at=entry.updatedAt,
+                deleted_at=entry.deletedAt,
                 revision=current_revision,
             )
             await self.store.upsert_entry(mongo_entry)
@@ -99,15 +117,35 @@ class SyncService:
             mongo_meta = MongoAttachmentMeta(
                 id=meta.id,
                 sha256=meta.sha256,
-                sizeBytes=meta.sizeBytes,
-                mimeType=meta.mimeType,
-                createdAt=meta.createdAt,
-                updatedAt=meta.updatedAt,
-                deletedAt=meta.deletedAt,
+                size_bytes=meta.sizeBytes,
+                mime_type=meta.mimeType,
+                created_at=meta.createdAt,
+                updated_at=meta.updatedAt,
+                deleted_at=meta.deletedAt,
                 revision=current_revision,
             )
             await self.store.upsert_attachment_meta(mongo_meta)
             accepted.append(meta.id)
+
+        for journal in payload.journals:
+            existing_journal = await self.store.get_journal(journal.id)
+            if (existing_journal and journal.revision is not None
+                    and journal.revision < existing_journal.get("revision", 0)):
+                conflicts.append(journal.id)
+                continue
+
+            current_revision = await self.store.get_next_revision()
+            mongo_journal = MongoJournal(
+                id=journal.id,
+                name=journal.name,
+                color=journal.color,
+                created_at=journal.createdAt,
+                updated_at=journal.updatedAt,
+                deleted_at=journal.deletedAt,
+                revision=current_revision,
+            )
+            await self.store.upsert_journal(mongo_journal)
+            accepted.append(journal.id)
 
         return PushResponse(
             accepted=accepted,
